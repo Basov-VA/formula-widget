@@ -1,2 +1,0 @@
-/usr/bin/ar qc libfonts_for_tests.a CMakeFiles/fonts_for_tests.dir/fonts_for_tests_autogen/mocs_compilation.cpp.o CMakeFiles/fonts_for_tests.dir/src/font_face.cpp.o CMakeFiles/fonts_for_tests.dir/src/freetype.cpp.o CMakeFiles/fonts_for_tests.dir/src/freetype_error.cpp.o
-/usr/bin/ranlib libfonts_for_tests.a

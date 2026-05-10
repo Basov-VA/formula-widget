@@ -1,0 +1,30 @@
+# Build directories
+build/
+*/build/
+**/build/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.make
+
+# Compiled object files
+*.o
+*.o.d
+
+# Static libraries
+*.a
+
+# Executables
+formula_widget
+approval_tests
+unit_tests
+
+# Qt MOC generated files
+mfl_autogen/
+*_autogen/
+
+# macOS
+.DS_Store
