@@ -1,0 +1,170 @@
+{
+	"BUILD_DIR" : "/Users/yolkee/Documents/UIR/formula_widget/build/tests/formula_widget_tests_autogen",
+	"CMAKE_BINARY_DIR" : "/Users/yolkee/Documents/UIR/formula_widget/build",
+	"CMAKE_CURRENT_BINARY_DIR" : "/Users/yolkee/Documents/UIR/formula_widget/build/tests",
+	"CMAKE_CURRENT_SOURCE_DIR" : "/Users/yolkee/Documents/UIR/formula_widget/tests",
+	"CMAKE_EXECUTABLE" : "/opt/homebrew/bin/cmake",
+	"CMAKE_LIST_FILES" : 
+	[
+		"/Users/yolkee/Documents/UIR/formula_widget/tests/CMakeLists.txt",
+		"/opt/homebrew/lib/cmake/Qt6/Qt6ConfigVersion.cmake",
+		"/opt/homebrew/lib/cmake/Qt6/Qt6ConfigVersionImpl.cmake",
+		"/opt/homebrew/lib/cmake/Qt6/Qt6Config.cmake",
+		"/opt/homebrew/lib/cmake/Qt6/QtPublicCMakeEarlyPolicyHelpers.cmake",
+		"/opt/homebrew/lib/cmake/Qt6/QtPublicCMakeHelpers.cmake",
+		"/opt/homebrew/lib/cmake/Qt6/Qt6ConfigExtras.cmake",
+		"/opt/homebrew/lib/cmake/Qt6/QtPublicCMakeVersionHelpers.cmake",
+		"/opt/homebrew/lib/cmake/Qt6/QtInstallPaths.cmake",
+		"/opt/homebrew/lib/cmake/Qt6/Qt6TargetsPrecheck.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtFeature.cmake",
+		"/opt/homebrew/share/cmake/Modules/CheckCXXCompilerFlag.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtFeatureCommon.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicAndroidHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicAppleHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicCMakeHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicCMakeVersionHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicDependencyHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicExternalProjectHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicFinalizerHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicFindPackageHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicGitHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicPluginHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicPluginHelpers_v2.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomAttributionHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomCommonGenerationHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomCpeHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomCycloneDXHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomDocumentNamespaceHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomDepHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomFileHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomGenerationHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomGenerationCycloneDXHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomLicenseHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomOpsHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomPurlHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomPythonHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomQtEntityHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicSbomSystemDepHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicTargetHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicTestHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicToolHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicWalkLibsHelpers.cmake",
+		"/opt/homebrew/Cellar/qtbase/6.11.0/lib/cmake/Qt6/QtPublicWindowsHelpers.cmake",
+		"/opt/homebrew/share/cmake/Modules/CMakeFindDependencyMacro.cmake",
+		"/opt/homebrew/lib/cmake/Qt6/Qt6Dependencies.cmake",
+		"/opt/homebrew/lib/cmake/Qt6Test/Qt6TestConfigVersion.cmake",
+		"/opt/homebrew/lib/cmake/Qt6Test/Qt6TestConfigVersionImpl.cmake",
+		"/opt/homebrew/lib/cmake/Qt6Test/Qt6TestConfig.cmake",
+		"/opt/homebrew/share/cmake/Modules/CMakeFindDependencyMacro.cmake",
+		"/opt/homebrew/lib/cmake/Qt6Test/Qt6TestDependencies.cmake",
+		"/opt/homebrew/lib/cmake/Qt6Test/Qt6TestTargetsPrecheck.cmake",
+		"/opt/homebrew/lib/cmake/Qt6Test/Qt6TestTargets.cmake",
+		"/opt/homebrew/lib/cmake/Qt6Test/Qt6TestTargets-release.cmake",
+		"/opt/homebrew/lib/cmake/Qt6Test/Qt6TestAdditionalTargetInfo.cmake",
+		"/opt/homebrew/lib/cmake/Qt6Test/QtTestProperties.cmake",
+		"/opt/homebrew/lib/cmake/Qt6Test/Qt6TestVersionlessAliasTargets.cmake"
+	],
+	"CMAKE_SOURCE_DIR" : "/Users/yolkee/Documents/UIR/formula_widget",
+	"CROSS_CONFIG" : false,
+	"DEP_FILE" : "/Users/yolkee/Documents/UIR/formula_widget/build/tests/formula_widget_tests_autogen/deps",
+	"DEP_FILE_RULE_NAME" : "formula_widget_tests_autogen/timestamp",
+	"HEADERS" : 
+	[
+		[
+			"/Users/yolkee/Documents/UIR/formula_widget/tests/formula_widget_test.hpp",
+			"MU",
+			"EWIEGA46WW/moc_formula_widget_test.cpp",
+			null
+		]
+	],
+	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
+	"INCLUDE_DIR" : "/Users/yolkee/Documents/UIR/formula_widget/build/tests/formula_widget_tests_autogen/include",
+	"MOC_COMPILATION_FILE" : "/Users/yolkee/Documents/UIR/formula_widget/build/tests/formula_widget_tests_autogen/mocs_compilation.cpp",
+	"MOC_DEFINITIONS" : 
+	[
+		"QT_CORE_LIB",
+		"QT_GUI_LIB",
+		"QT_NO_DEBUG",
+		"QT_TESTCASE_BUILDDIR=\"/Users/yolkee/Documents/UIR/formula_widget/build/tests\"",
+		"QT_TESTCASE_SOURCEDIR=\"/Users/yolkee/Documents/UIR/formula_widget/tests\"",
+		"QT_TESTLIB_LIB",
+		"QT_WIDGETS_LIB"
+	],
+	"MOC_DEPEND_FILTERS" : 
+	[
+		[
+			"Q_PLUGIN_METADATA",
+			"[\n][ \t]*Q_PLUGIN_METADATA[ \t]*\\([^\\)]*FILE[ \t]*\"([^\"]+)\""
+		]
+	],
+	"MOC_INCLUDES" : 
+	[
+		"/Users/yolkee/Documents/UIR/mfl/include",
+		"/opt/homebrew/lib/QtCore.framework/Headers",
+		"/opt/homebrew/lib/QtCore.framework",
+		"/opt/homebrew/share/qt/mkspecs/macx-clang",
+		"/opt/homebrew/include",
+		"/opt/homebrew/lib/QtWidgets.framework/Headers",
+		"/opt/homebrew/lib/QtWidgets.framework",
+		"/opt/homebrew/lib/QtGui.framework/Headers",
+		"/opt/homebrew/lib/QtGui.framework",
+		"/opt/homebrew/lib/QtTest.framework/Headers",
+		"/opt/homebrew/lib/QtTest.framework",
+		"/usr/local/include",
+		"/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1",
+		"/Library/Developer/CommandLineTools/usr/lib/clang/17/include",
+		"/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include",
+		"/Library/Developer/CommandLineTools/usr/include"
+	],
+	"MOC_MACRO_NAMES" : 
+	[
+		"Q_OBJECT",
+		"Q_GADGET",
+		"Q_NAMESPACE",
+		"Q_NAMESPACE_EXPORT",
+		"Q_GADGET_EXPORT",
+		"Q_ENUM_NS"
+	],
+	"MOC_OPTIONS" : [],
+	"MOC_PATH_PREFIX" : false,
+	"MOC_PREDEFS_CMD" : 
+	[
+		"/usr/bin/c++",
+		"-std=gnu++20",
+		"-w",
+		"-dM",
+		"-E",
+		"/opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp"
+	],
+	"MOC_PREDEFS_FILE" : "/Users/yolkee/Documents/UIR/formula_widget/build/tests/formula_widget_tests_autogen/moc_predefs.h",
+	"MOC_RELAXED_MODE" : false,
+	"MOC_SKIP" : [],
+	"MULTI_CONFIG" : false,
+	"PARALLEL" : 10,
+	"PARSE_CACHE_FILE" : "/Users/yolkee/Documents/UIR/formula_widget/build/tests/CMakeFiles/formula_widget_tests_autogen.dir/ParseCache.txt",
+	"QT_MOC_EXECUTABLE" : "/opt/homebrew/share/qt/libexec/moc",
+	"QT_UIC_EXECUTABLE" : "/opt/homebrew/share/qt/libexec/uic",
+	"QT_VERSION_MAJOR" : 6,
+	"QT_VERSION_MINOR" : 11,
+	"SETTINGS_FILE" : "/Users/yolkee/Documents/UIR/formula_widget/build/tests/CMakeFiles/formula_widget_tests_autogen.dir/AutogenUsed.txt",
+	"SOURCES" : 
+	[
+		[
+			"/Users/yolkee/Documents/UIR/formula_widget/tests/formula_widget_test.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/formula_widget/tests/main.cpp",
+			"MU",
+			null
+		]
+	],
+	"UIC_OPTIONS" : [],
+	"UIC_SEARCH_PATHS" : [],
+	"UIC_SKIP" : [],
+	"UIC_UI_FILES" : [],
+	"USE_BETTER_GRAPH" : true,
+	"VERBOSITY" : 0
+}

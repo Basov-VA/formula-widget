@@ -1,0 +1,282 @@
+{
+	"BUILD_DIR" : "/Users/yolkee/Documents/UIR/formula_widget/build/mfl/tests/unit_tests/unit_tests_autogen",
+	"CMAKE_BINARY_DIR" : "/Users/yolkee/Documents/UIR/formula_widget/build",
+	"CMAKE_CURRENT_BINARY_DIR" : "/Users/yolkee/Documents/UIR/formula_widget/build/mfl/tests/unit_tests",
+	"CMAKE_CURRENT_SOURCE_DIR" : "/Users/yolkee/Documents/UIR/mfl/tests/unit_tests",
+	"CMAKE_EXECUTABLE" : "/opt/homebrew/bin/cmake",
+	"CMAKE_LIST_FILES" : 
+	[
+		"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/CMakeLists.txt",
+		"/opt/homebrew/lib/cmake/doctest/doctestConfigVersion.cmake",
+		"/opt/homebrew/lib/cmake/doctest/doctestConfig.cmake",
+		"/opt/homebrew/lib/cmake/doctest/doctestTargets.cmake",
+		"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/framework/doctest.cmake"
+	],
+	"CMAKE_SOURCE_DIR" : "/Users/yolkee/Documents/UIR/formula_widget",
+	"CROSS_CONFIG" : false,
+	"DEP_FILE" : "/Users/yolkee/Documents/UIR/formula_widget/build/mfl/tests/unit_tests/unit_tests_autogen/deps",
+	"DEP_FILE_RULE_NAME" : "unit_tests_autogen/timestamp",
+	"HEADERS" : 
+	[
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/framework/mock_font_face.hpp",
+			"MU",
+			"5GHRDXJTIC/moc_mock_font_face.cpp",
+			null
+		]
+	],
+	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
+	"INCLUDE_DIR" : "/Users/yolkee/Documents/UIR/formula_widget/build/mfl/tests/unit_tests/unit_tests_autogen/include",
+	"MOC_COMPILATION_FILE" : "/Users/yolkee/Documents/UIR/formula_widget/build/mfl/tests/unit_tests/unit_tests_autogen/mocs_compilation.cpp",
+	"MOC_DEFINITIONS" : [],
+	"MOC_DEPEND_FILTERS" : 
+	[
+		[
+			"Q_PLUGIN_METADATA",
+			"[\n][ \t]*Q_PLUGIN_METADATA[ \t]*\\([^\\)]*FILE[ \t]*\"([^\"]+)\""
+		]
+	],
+	"MOC_INCLUDES" : 
+	[
+		"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests",
+		"/Users/yolkee/Documents/UIR/mfl/include",
+		"/Users/yolkee/Documents/UIR/mfl/src",
+		"/Users/yolkee/Documents/UIR/mfl/include",
+		"/opt/homebrew/include",
+		"/usr/local/include",
+		"/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1",
+		"/Library/Developer/CommandLineTools/usr/lib/clang/17/include",
+		"/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include",
+		"/Library/Developer/CommandLineTools/usr/include"
+	],
+	"MOC_MACRO_NAMES" : 
+	[
+		"Q_OBJECT",
+		"Q_GADGET",
+		"Q_NAMESPACE",
+		"Q_NAMESPACE_EXPORT",
+		"Q_GADGET_EXPORT",
+		"Q_ENUM_NS"
+	],
+	"MOC_OPTIONS" : [],
+	"MOC_PATH_PREFIX" : false,
+	"MOC_PREDEFS_CMD" : 
+	[
+		"/usr/bin/c++",
+		"-std=gnu++20",
+		"-w",
+		"-dM",
+		"-E",
+		"/opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp"
+	],
+	"MOC_PREDEFS_FILE" : "/Users/yolkee/Documents/UIR/formula_widget/build/mfl/tests/unit_tests/unit_tests_autogen/moc_predefs.h",
+	"MOC_RELAXED_MODE" : false,
+	"MOC_SKIP" : [],
+	"MULTI_CONFIG" : false,
+	"PARALLEL" : 10,
+	"PARSE_CACHE_FILE" : "/Users/yolkee/Documents/UIR/formula_widget/build/mfl/tests/unit_tests/CMakeFiles/unit_tests_autogen.dir/ParseCache.txt",
+	"QT_MOC_EXECUTABLE" : "/opt/homebrew/share/qt/libexec/moc",
+	"QT_UIC_EXECUTABLE" : "/opt/homebrew/share/qt/libexec/uic",
+	"QT_VERSION_MAJOR" : 6,
+	"QT_VERSION_MINOR" : 11,
+	"SETTINGS_FILE" : "/Users/yolkee/Documents/UIR/formula_widget/build/mfl/tests/unit_tests/CMakeFiles/unit_tests_autogen.dir/AutogenUsed.txt",
+	"SOURCES" : 
+	[
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/dist.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/framework/mock_font_face.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/layout.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/main.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/noad/accent.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/noad/big_op.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/noad/fraction.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/noad/left_right.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/noad/math_char.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/noad/matrix.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/noad/noad.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/noad/overline.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/noad/radical.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/noad/script.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/noad/underline.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/node/box.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/node/glue.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/node/hlist.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/node/node.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/node/vlist.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/node/vstack.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/accent.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/big_op.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/font_group.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/fraction.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/function.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/left_right.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/lexer.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/line.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/math_char.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/math_space.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/matrix.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/parse.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/radical.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/script.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/tokens.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/parser/unicode_index.cpp",
+			"MU",
+			null
+		],
+		[
+			"/Users/yolkee/Documents/UIR/mfl/tests/unit_tests/units.cpp",
+			"MU",
+			null
+		]
+	],
+	"UIC_OPTIONS" : [],
+	"UIC_SEARCH_PATHS" : [],
+	"UIC_SKIP" : [],
+	"UIC_UI_FILES" : [],
+	"USE_BETTER_GRAPH" : true,
+	"VERBOSITY" : 0
+}
