@@ -1,0 +1,40 @@
+language: cpp
+
+sudo: required
+dist: focal
+os: linux
+compiler: gcc
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get -y install pkg-config autopoint gperf
+
+install:
+  - |
+    wget http://kayari.org/gcc-latest/gcc-latest.deb && sudo dpkg -i gcc-latest.deb
+    export PATH=/opt/gcc-latest/bin:$PATH
+    export LD_RUN_PATH=/opt/gcc-latest/lib64
+    git clone https://github.com/Microsoft/vcpkg.git
+    cd vcpkg
+    ./bootstrap-vcpkg.sh -disableMetrics
+    ./vcpkg integrate install
+    ./vcpkg update
+    sed -i 's/"${CURRENT_PACKAGES_DIR}\/debug\/etc")/"${CURRENT_PACKAGES_DIR}\/debug\/etc")\nfile(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}\/share\/fontconfig\/locale")/' ./ports/fontconfig/portfile.cmake
+    ./vcpkg install libuuid expat range-v3 fmt cairo harfbuzz freetype doctest
+    cd ..
+
+before_script:
+  - gcov --version
+  - pip install --user cpp-coveralls
+
+after_success:
+  - coveralls --root . --include include --include src --gcov-options '\-lp'
+
+script:
+  - |
+    mkdir build
+    cd build
+    cmake ./.. -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE:BOOL=TRUE -DCMAKE_TOOLCHAIN_FILE=./../vcpkg/scripts/buildsystems/vcpkg.cmake
+    cmake --build . -- -j2
+    ./tests/unit_tests/unit_tests
+    cd ..

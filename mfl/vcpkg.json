@@ -1,0 +1,8 @@
+{
+  "dependencies": [
+    "cairo",
+    "doctest",
+    "freetype",
+    "harfbuzz"
+  ]
+}
