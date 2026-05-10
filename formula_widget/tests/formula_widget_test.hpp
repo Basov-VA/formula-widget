@@ -33,6 +33,12 @@ private slots:
     void testEmptyFormula();
     void testInvalidFormula();
 
+    // Cursor functionality tests
+    void testCursorSetPosition();
+    void testCursorSetPositionMfl();
+    void testCursorHighlight();
+    void testCoordinateConversionConsistency();
+
 private:
     FormulaWidget* widget;
 };

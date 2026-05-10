@@ -157,6 +157,34 @@ void FormulaWidget::paintEvent(QPaintEvent* /*event*/)
     {
         drawBoundingBoxes(painter, layout_.tree);
     }
+
+    // Рисование подсветки курсора
+    if (cursor_highlight_enabled_ && cursor_.hasHighlight()) {
+        auto hit = cursor_.currentHighlight();
+        if (hit) {
+            // Конвертировать bbox из mfl points в пиксели Qt
+            double left   = mflToPixelX(hit->bbox_left);
+            double right  = mflToPixelX(hit->bbox_right);
+            double top    = mflToPixelY(hit->bbox_top);     // mfl top → Qt top (меньше y)
+            double bottom = mflToPixelY(hit->bbox_bottom);  // mfl bottom → Qt bottom (больше y)
+
+            QRectF highlight_rect(left, top, right - left, bottom - top);
+
+            // Полупрозрачная заливка
+            painter.fillRect(highlight_rect, QColor(66, 133, 244, 60));  // голубой, alpha=60
+
+            // Рамка
+            painter.setPen(QPen(QColor(66, 133, 244, 200), 1.5));
+            painter.drawRect(highlight_rect);
+        }
+    }
+
+    // Рисование красной точки на позиции курсора для дебага
+    if (cursor_position_.has_value()) {
+        QPointF pos = cursor_position_.value();
+        painter.setPen(QPen(Qt::red, 2));
+        painter.drawEllipse(pos, 2, 2);
+    }
 }
 
 void FormulaWidget::resizeEvent(QResizeEvent* event)
@@ -200,6 +228,82 @@ void FormulaWidget::recalculateLayout()
         qDebug() << "recalculateLayout: exception:" << e.what();
         layout_ = mfl::layout_elements{.error = std::format("Exception during layout: {}", e.what())};
     }
+
+    // Update cursor with new layout
+    cursor_.setLayout(&layout_);
+}
+
+// Cursor functionality implementation
+void FormulaWidget::setCursorPosition(double pixel_x, double pixel_y) {
+    // Store the pixel position
+    cursor_position_ = QPointF(pixel_x, pixel_y);
+
+    mfl::points x = pixelToMflX(pixel_x);
+    mfl::points y = pixelToMflY(pixel_y);
+    setCursorPositionMfl(x, y);
+}
+
+void FormulaWidget::setCursorPositionMfl(mfl::points x, mfl::points y) {
+    // Convert MFL coordinates to pixel coordinates for cursor visualization
+    double pixel_x = mflToPixelX(x);
+    double pixel_y = mflToPixelY(y);
+    cursor_position_ = QPointF(pixel_x, pixel_y);
+
+    // Store the position in mfl coordinates
+    cursor_.setPosition(x, y);
+    if (cursor_.hasHighlight()) {
+        auto hit = cursor_.currentHighlight();
+        if (hit) {
+            emit cursorGlyphChanged(hit->glyph_index);
+        }
+    }
+    update(); // Trigger repaint to show highlight
+}
+
+std::optional<QPointF> FormulaWidget::getCursorPosition() const {
+    return cursor_position_;
+}
+
+void FormulaWidget::setCursorHighlightEnabled(bool enabled) {
+    if (cursor_highlight_enabled_ != enabled) {
+        cursor_highlight_enabled_ = enabled;
+        update(); // Trigger repaint
+    }
+}
+
+std::optional<formula::glyph_hit_result> FormulaWidget::currentCursorHit() const {
+    return cursor_.currentHighlight();
+}
+
+// Coordinate conversion functions
+mfl::points FormulaWidget::pixelToMflX(double pixel_x) const {
+    // pixel_x → mfl_x: убрать отступ, конвертировать px → pt
+    double pt_x = (pixel_x - margin_left_) * 72.0 / dpi_;
+    return mfl::points{pt_x};
+}
+
+mfl::points FormulaWidget::pixelToMflY(double pixel_y) const {
+    // Qt Y-down → mfl Y-up: инвертировать
+    // В Qt: pixel_y=0 — верх виджета
+    // В mfl: y=0 — baseline (примерно низ формулы)
+    // Use the same conversion as qtToMfl for consistency
+    const double baseline_y = margin_top_ + layout_.height.value() * dpi_ / 72.0;
+    double pt_y = (baseline_y - pixel_y) * 72.0 / dpi_;
+    return mfl::points{pt_y};
+}
+
+double FormulaWidget::mflToPixelX(mfl::points x) const {
+    // Do NOT add margin_left_ here: paintEvent already calls painter.translate(margin_left_, 0)
+    // before drawing glyphs and the cursor highlight, so the painter coordinate system
+    // is already shifted. Adding margin_left_ again would double-offset the highlight rect.
+    return x.value() * dpi_ / 72.0;
+}
+
+double FormulaWidget::mflToPixelY(mfl::points y) const {
+    // mfl Y-up → Qt Y-down: инвертировать
+    // Use the same conversion as mflToQt for consistency
+    const double baseline_y = margin_top_ + layout_.height.value() * dpi_ / 72.0;
+    return baseline_y - y.value() * dpi_ / 72.0;
 }
 
 void FormulaWidget::mousePressEvent(QMouseEvent* event)
@@ -209,9 +313,32 @@ void FormulaWidget::mousePressEvent(QMouseEvent* event)
         const QPointF pos = event->pos();
         if (auto node = nodeAtPosition(pos))
         {
-            // For now, just print the node type to the console
-            // In a real application, you might emit a signal or update UI
-            qDebug() << "Clicked on node type:" << static_cast<int>(node->type);
+            // Print the node type and try to get character information
+            QString info = QString("Clicked on node type: %1").arg(static_cast<int>(node->type));
+
+            // Try to get character information from the first glyph if available
+            if (!node->glyph_indices.empty() && !layout_.glyphs.empty()) {
+                size_t glyph_index = node->glyph_indices[0];
+                if (glyph_index < layout_.glyphs.size()) {
+                    const auto& glyph = layout_.glyphs[glyph_index];
+                    // Try to convert the glyph index to a character
+                    uint char_code = static_cast<uint>(glyph.index);
+                    QChar ch(static_cast<char16_t>(char_code));
+                    if (!ch.isPrint() || ch.category() == QChar::Other_NotAssigned) {
+                        // If not a printable character, show the code
+                        info += QString(", glyph: #%1 (code: %2)")
+                                   .arg(glyph_index)
+                                   .arg(glyph.index);
+                    } else {
+                        // Show the actual character
+                        info += QString(", glyph: #%1 ('%2')")
+                                   .arg(glyph_index)
+                                   .arg(ch);
+                    }
+                }
+            }
+
+            qDebug() << info;
         }
     }
 

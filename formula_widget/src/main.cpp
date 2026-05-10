@@ -79,6 +79,30 @@ private:
 
         controlsLayout->addLayout(settingsLayout);
 
+        // Create cursor controls
+        auto* cursorLayout = new QHBoxLayout;
+        cursorLayout->addWidget(new QLabel("Cursor X:"));
+        cursorXSpinBox_ = new QDoubleSpinBox;
+        cursorXSpinBox_->setRange(-1000, 1000);
+        cursorXSpinBox_->setValue(0);
+        cursorLayout->addWidget(cursorXSpinBox_);
+
+        cursorLayout->addWidget(new QLabel("Cursor Y:"));
+        cursorYSpinBox_ = new QDoubleSpinBox;
+        cursorYSpinBox_->setRange(-1000, 1000);
+        cursorYSpinBox_->setValue(0);
+        cursorLayout->addWidget(cursorYSpinBox_);
+
+        findGlyphButton_ = new QPushButton("Find Nearest Glyph");
+        cursorLayout->addWidget(findGlyphButton_);
+
+        cursorInfoLabel_ = new QLabel("No glyph selected");
+        cursorLayout->addWidget(cursorInfoLabel_);
+
+        cursorLayout->addStretch();
+
+        controlsLayout->addLayout(cursorLayout);
+
         mainLayout->addWidget(controlsWidget);
 
         // Create splitter for formula widget and tree view
@@ -119,6 +143,16 @@ private:
                 this, &MainWindow::updateFontSize);
         connect(debugCheckBox_, &QCheckBox::toggled,
                 formulaWidget_, &FormulaWidget::setDebugDrawBBoxes);
+
+        // Connect cursor controls
+        connect(findGlyphButton_, &QPushButton::clicked, this, &MainWindow::findNearestGlyph);
+        connect(formulaWidget_, &FormulaWidget::cursorGlyphChanged, this, &MainWindow::onCursorGlyphChanged);
+
+        // Connect cursor position spin boxes to update cursor in real-time
+        connect(cursorXSpinBox_, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                this, &MainWindow::findNearestGlyph);
+        connect(cursorYSpinBox_, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                this, &MainWindow::findNearestGlyph);
     }
 
 private slots:
@@ -132,6 +166,40 @@ private slots:
         formulaWidget_->setFontSize(size);
     }
 
+private slots:
+    void findNearestGlyph()
+    {
+        double x = cursorXSpinBox_->value();
+        double y = cursorYSpinBox_->value();
+        formulaWidget_->setCursorPositionMfl(mfl::points{x}, mfl::points{y});
+    }
+
+    void onCursorGlyphChanged(std::size_t glyph_index)
+    {
+        // Get the layout elements from the formula widget
+        const auto& elements = formulaWidget_->layoutElements();
+
+        if (glyph_index < elements.glyphs.size()) {
+            const auto& glyph = elements.glyphs[glyph_index];
+
+            // Update the info label with glyph information
+            QString info = QString("Glyph #%1: family=%2, index=%3, x=%4, y=%5, adv=%6")
+                              .arg(glyph_index)
+                              .arg(static_cast<int>(glyph.family))
+                              .arg(glyph.index)
+                              .arg(glyph.x.value())
+                              .arg(glyph.y.value())
+                              .arg(glyph.advance.value());
+
+            cursorInfoLabel_->setText(info);
+
+            // Also print to console for debugging
+            qDebug() << "Glyph info:" << info;
+        } else {
+            cursorInfoLabel_->setText(QString("Glyph #%1 (out of range)").arg(glyph_index));
+        }
+    }
+
 private:
      QLineEdit* formulaInput_;
      QPushButton* updateButton_;
@@ -139,6 +207,12 @@ private:
      QCheckBox* debugCheckBox_;
      FormulaWidget* formulaWidget_;
      QTextEdit* treeView_;
+
+     // Cursor controls
+     QDoubleSpinBox* cursorXSpinBox_;
+     QDoubleSpinBox* cursorYSpinBox_;
+     QPushButton* findGlyphButton_;
+     QLabel* cursorInfoLabel_;
 
  private slots:
      void showTreeStructure()

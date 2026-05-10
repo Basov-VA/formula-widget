@@ -4,13 +4,24 @@ cmake_minimum_required(VERSION 3.16)
 # Find Qt packages
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Test)
 
-# Create test executable
+# Create test executable for widget tests
 add_executable(formula_widget_tests
     main.cpp
     formula_widget_test.cpp
 )
 
-# Link libraries
+# Create test executable for cursor tests
+add_executable(formula_cursor_tests
+    test_cursor.cpp
+    ../src/formula_cursor.cpp
+)
+
+# Create test executable for coordinate conversion tests
+add_executable(coordinate_conversion_tests
+    test_coordinate_conversion.cpp
+)
+
+# Link libraries for widget tests
 target_link_libraries(formula_widget_tests
     PRIVATE
         mfl
@@ -19,5 +30,32 @@ target_link_libraries(formula_widget_tests
         Qt6::Test
 )
 
-# Add test
+# Link libraries for cursor tests
+target_link_libraries(formula_cursor_tests
+    PRIVATE
+        mfl
+        Qt6::Core
+        Qt6::Test
+)
+
+# Link libraries for coordinate conversion tests
+target_link_libraries(coordinate_conversion_tests
+    PRIVATE
+        Qt6::Core
+        Qt6::Test
+)
+
+# Include directories
+target_include_directories(formula_cursor_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../mfl/include
+)
+
+target_include_directories(coordinate_conversion_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src
+)
+
+# Add tests
 add_test(NAME formula_widget_tests COMMAND formula_widget_tests)
+add_test(NAME formula_cursor_tests COMMAND formula_cursor_tests)
+add_test(NAME coordinate_conversion_tests COMMAND coordinate_conversion_tests)

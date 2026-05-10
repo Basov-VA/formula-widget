@@ -4,6 +4,7 @@
 #include "ft_font_face.hpp"
 
 #include "mfl/layout.hpp"
+#include "formula_cursor.hpp"
 
 #include <QWidget>
 #include <QPainter>
@@ -43,8 +44,18 @@ public:
     [[nodiscard]] std::optional<mfl::formula_node> nodeAtPosition(const QPointF& pos) const;
     [[nodiscard]] QPointF qtToMfl(QPointF qt_pos) const;
 
+    // Cursor functionality
+    void setCursorPosition(double pixel_x, double pixel_y);
+    void setCursorPositionMfl(mfl::points x, mfl::points y);
+    void setCursorHighlightEnabled(bool enabled);
+    std::optional<formula::glyph_hit_result> currentCursorHit() const;
+
+    // Get cursor position in pixel coordinates
+    std::optional<QPointF> getCursorPosition() const;
+
 signals:
     void formulaChanged();
+    void cursorGlyphChanged(std::size_t glyph_index);
 
 protected:
     void paintEvent(QPaintEvent* event) override;
@@ -57,6 +68,10 @@ private:
     // Coordinate conversion functions
     [[nodiscard]] double pointsToPixels(mfl::points pt) const;
     [[nodiscard]] QPointF mflToQt(mfl::points x, mfl::points y) const;
+    [[nodiscard]] mfl::points pixelToMflX(double pixel_x) const;
+    [[nodiscard]] mfl::points pixelToMflY(double pixel_y) const;
+    [[nodiscard]] double mflToPixelX(mfl::points x) const;
+    [[nodiscard]] double mflToPixelY(mfl::points y) const;
 
     // Rendering functions
     void renderGlyph(QPainter& painter, const mfl::shaped_glyph& g);
@@ -71,6 +86,11 @@ private:
     mfl::layout_elements layout_;
 
     bool debug_draw_bboxes_ = false;
+
+    // Cursor functionality
+    formula::FormulaCursor cursor_;
+    bool cursor_highlight_enabled_ = true;
+    std::optional<QPointF> cursor_position_;
 
     // FreeType/HarfBuzz resources
     std::unique_ptr<fw::FtLibrary> ft_lib_;

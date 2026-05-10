@@ -20,6 +20,7 @@ set(SOURCES
     src/ft_library.cpp
     src/ft_font_face.cpp
     src/formula_widget.cpp
+    src/formula_cursor.cpp
     src/main.cpp
 )
 
@@ -27,6 +28,7 @@ set(HEADERS
     src/ft_library.hpp
     src/ft_font_face.hpp
     src/formula_widget.hpp
+    src/formula_cursor.hpp
 )
 
 # Create executable

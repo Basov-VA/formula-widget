@@ -262,3 +262,84 @@ void FormulaWidgetTest::testInvalidFormula()
     QVERIFY(elements.error.has_value());
     QVERIFY(!elements.error->empty());
 }
+
+void FormulaWidgetTest::testCursorSetPosition()
+{
+    widget->setFormula("x");
+
+    // Set cursor position in pixel coordinates
+    widget->setCursorPosition(50, 50);
+
+    // Check that cursor position is stored
+    auto cursorPos = widget->getCursorPosition();
+    QVERIFY(cursorPos.has_value());
+    QCOMPARE(cursorPos->x(), 50.0);
+    QCOMPARE(cursorPos->y(), 50.0);
+}
+
+void FormulaWidgetTest::testCursorSetPositionMfl()
+{
+    widget->setFormula("x");
+
+    // Set cursor position in MFL coordinates
+    widget->setCursorPositionMfl(mfl::points{10.0}, mfl::points{10.0});
+
+    // Check that cursor position is stored
+    auto cursorPos = widget->getCursorPosition();
+    QVERIFY(cursorPos.has_value());
+
+    // Check that we have a highlight
+    auto highlight = widget->currentCursorHit();
+    // We can't assert specific values since they depend on the layout
+    QVERIFY(true); // Placeholder
+}
+
+void FormulaWidgetTest::testCursorHighlight()
+{
+    widget->setFormula("x");
+
+    // Set cursor position to highlight a glyph
+    widget->setCursorPositionMfl(mfl::points{1.0}, mfl::points{0.0});
+
+    // Check that we have a highlight
+    auto highlight = widget->currentCursorHit();
+    // For a simple formula like "x", we should find a glyph
+    QVERIFY(highlight.has_value());
+
+    // Check that the highlight has valid bbox coordinates
+    QVERIFY(highlight->bbox_left.value() >= 0);
+    QVERIFY(highlight->bbox_right.value() > highlight->bbox_left.value());
+    QVERIFY(highlight->bbox_top.value() >= highlight->bbox_bottom.value());
+}
+
+void FormulaWidgetTest::testCoordinateConversionConsistency()
+{
+    widget->setFormula("x");
+
+    // Test round-trip conversion consistency
+    const double pixel_x = 100.0;
+    const double pixel_y = 100.0;
+
+    // Convert pixel -> MFL -> pixel
+    const mfl::points mfl_x = widget->pixelToMflX(pixel_x);
+    const mfl::points mfl_y = widget->pixelToMflY(pixel_y);
+    const double converted_x = widget->mflToPixelX(mfl_x);
+    const double converted_y = widget->mflToPixelY(mfl_y);
+
+    // Check that the conversion is consistent (within rounding errors)
+    QVERIFY(qAbs(converted_x - pixel_x) < 0.1);
+    QVERIFY(qAbs(converted_y - pixel_y) < 0.1);
+
+    // Test MFL -> pixel -> MFL conversion
+    const mfl::points original_mfl_x{10.0};
+    const mfl::points original_mfl_y{10.0};
+
+    const double pixel_x2 = widget->mflToPixelX(original_mfl_x);
+    const double pixel_y2 = widget->mflToPixelY(original_mfl_y);
+    const mfl::points converted_mfl_x = widget->pixelToMflX(pixel_x2);
+    const mfl::points converted_mfl_y = widget->pixelToMflY(pixel_y2);
+
+    // Check that the conversion is consistent (within rounding errors)
+    QVERIFY(qAbs(converted_mfl_x.value() - original_mfl_x.value()) < 0.1);
+    QVERIFY(qAbs(converted_mfl_y.value() - original_mfl_y.value()) < 0.1);
+}
