@@ -17,10 +17,10 @@ Makefile
 # Static libraries
 *.a
 
-# Executables
-formula_widget
-approval_tests
-unit_tests
+# Executables (match files only, not directories — no trailing slash needed but use full path pattern)
+formula_widget/build/formula_widget
+formula_widget/build/mfl/tests/approval_tests/approval_tests
+formula_widget/build/mfl/tests/unit_tests/unit_tests
 
 # Qt MOC generated files
 mfl_autogen/
