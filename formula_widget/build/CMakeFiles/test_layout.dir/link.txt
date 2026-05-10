@@ -1,1 +1,0 @@
-/usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/test_layout.dir/test_layout_autogen/mocs_compilation.cpp.o CMakeFiles/test_layout.dir/test_layout.cpp.o -o test_layout  mfl/src/libmfl.a -lmfl_tests_unit_tests

@@ -1,5 +1,0 @@
-if(EXISTS "/Users/yolkee/Documents/UIR/formula_widget/build/mfl/tests/unit_tests/unit_tests_tests-b858cb2.cmake")
-  include("/Users/yolkee/Documents/UIR/formula_widget/build/mfl/tests/unit_tests/unit_tests_tests-b858cb2.cmake")
-else()
-  add_test(unit_tests_NOT_BUILT-b858cb2 unit_tests_NOT_BUILT-b858cb2)
-endif()
