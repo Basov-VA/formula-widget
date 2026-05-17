@@ -6,6 +6,14 @@
 
 namespace formula {
 
+    // Направления навигации стрелочками
+    enum class NavigationDirection {
+        Left,
+        Right,
+        Up,
+        Down
+    };
+
     // Результат поиска ближайшего глифа
     struct glyph_hit_result {
         std::size_t glyph_index;    // индекс в layout_elements.glyphs
@@ -43,6 +51,20 @@ namespace formula {
         // Вычислить расстояние от точки до bbox глифа
         // (0 если точка внутри bbox, иначе — расстояние до ближайшей стороны)
         static double distanceToBBox(double px, double py, const mfl::shaped_glyph& g);
+
+        // Навигация стрелочками: переместить курсор в указанном направлении
+        // Возвращает true если перемещение произошло, false если некуда двигаться
+        bool moveToDirection(NavigationDirection direction);
+
+        // Получить индекс текущего глифа (если есть)
+        std::optional<std::size_t> currentGlyphIndex() const;
+
+        // Установить курсор на конкретный глиф по индексу
+        void setGlyphIndex(std::size_t index);
+
+        // Найти ближайший глиф в заданном направлении от текущего
+        std::optional<std::size_t> findGlyphInDirection(
+            std::size_t current_index, NavigationDirection direction) const;
 
     private:
         const mfl::layout_elements* layout_ = nullptr;

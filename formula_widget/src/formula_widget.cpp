@@ -50,6 +50,13 @@ FormulaWidget::FormulaWidget(QWidget* parent)
     // Set a minimum size for the widget
     setMinimumSize(400, 100);
 
+    // Initialize blinking timer
+    blink_timer_.setInterval(blink_interval_ms_);
+    connect(&blink_timer_, &QTimer::timeout, this, &FormulaWidget::onBlinkTimer);
+
+    // Enable keyboard focus for arrow key navigation
+    setFocusPolicy(Qt::StrongFocus);
+
     // Try to get the actual screen DPI
     if (const auto* screen = QApplication::primaryScreen())
     {
@@ -77,6 +84,7 @@ void FormulaWidget::setFormula(const QString& tex)
     {
         tex_formula_ = tex;
         recalculateLayout();
+        stopBlinking();
         emit formulaChanged();
         update();
     }
@@ -158,24 +166,11 @@ void FormulaWidget::paintEvent(QPaintEvent* /*event*/)
         drawBoundingBoxes(painter, layout_.tree);
     }
 
-    // Рисование подсветки курсора
-    if (cursor_highlight_enabled_ && cursor_.hasHighlight()) {
-        auto hit = cursor_.currentHighlight();
-        if (hit) {
-            // Конвертировать bbox из mfl points в пиксели Qt
-            double left   = mflToPixelX(hit->bbox_left);
-            double right  = mflToPixelX(hit->bbox_right);
-            double top    = mflToPixelY(hit->bbox_top);     // mfl top → Qt top (меньше y)
-            double bottom = mflToPixelY(hit->bbox_bottom);  // mfl bottom → Qt bottom (больше y)
-
-            QRectF highlight_rect(left, top, right - left, bottom - top);
-
-            // Полупрозрачная заливка
-            painter.fillRect(highlight_rect, QColor(66, 133, 244, 60));  // голубой, alpha=60
-
-            // Рамка
-            painter.setPen(QPen(QColor(66, 133, 244, 200), 1.5));
-            painter.drawRect(highlight_rect);
+    // Рисование мигающего курсора-каретки
+    if (cursor_highlight_enabled_ && cursor_.hasHighlight() && cursor_visible_) {
+        QRectF caret_rect = getCaretRect();
+        if (!caret_rect.isEmpty()) {
+            painter.fillRect(caret_rect, Qt::black);
         }
     }
 
@@ -256,6 +251,8 @@ void FormulaWidget::setCursorPositionMfl(mfl::points x, mfl::points y) {
         if (hit) {
             emit cursorGlyphChanged(hit->glyph_index);
         }
+        // Reset blinking when cursor position is set
+        resetBlinking();
     }
     update(); // Trigger repaint to show highlight
 }
@@ -339,6 +336,10 @@ void FormulaWidget::mousePressEvent(QMouseEvent* event)
             }
 
             qDebug() << info;
+
+            // Set cursor position and reset blinking
+            setCursorPosition(pos.x(), pos.y());
+            resetBlinking();
         }
     }
 
@@ -541,4 +542,159 @@ void FormulaWidget::drawBoundingBoxes(QPainter& painter, const mfl::formula_node
     {
         drawBoundingBoxes(painter, child);
     }
+}
+
+void FormulaWidget::keyPressEvent(QKeyEvent* event) {
+    // Если курсор не установлен — инициализировать
+    if (!cursor_.hasHighlight() && !layout_.glyphs.empty()) {
+        switch (event->key()) {
+            case Qt::Key_Left:
+                cursor_.setGlyphIndex(layout_.glyphs.size() - 1);
+                break;
+            case Qt::Key_Right:
+            case Qt::Key_Up:
+            case Qt::Key_Down:
+                cursor_.setGlyphIndex(0);
+                break;
+            default:
+                QWidget::keyPressEvent(event);
+                return;
+        }
+        if (auto hit = cursor_.currentHighlight())
+            emit cursorGlyphChanged(hit->glyph_index);
+        update();
+        return;
+    }
+
+    bool moved = false;
+    switch (event->key()) {
+        case Qt::Key_Left:  moved = moveCursorLeft();  break;
+        case Qt::Key_Right: moved = moveCursorRight(); break;
+        case Qt::Key_Up:    moved = moveCursorUp();    break;
+        case Qt::Key_Down:  moved = moveCursorDown();  break;
+        default:
+            QWidget::keyPressEvent(event);
+            return;
+    }
+
+    if (moved) {
+        resetBlinking();
+    }
+    if (auto hit = cursor_.currentHighlight())
+        emit cursorGlyphChanged(hit->glyph_index);
+    update();
+}
+
+// Blinking cursor functionality
+void FormulaWidget::onBlinkTimer()
+{
+    cursor_visible_ = !cursor_visible_;
+    update();
+}
+
+void FormulaWidget::startBlinking()
+{
+    if (!blinking_enabled_ || !cursor_.hasHighlight()) {
+        return;
+    }
+
+    cursor_visible_ = true;
+    blink_timer_.start();
+    update();
+}
+
+void FormulaWidget::stopBlinking()
+{
+    blink_timer_.stop();
+    cursor_visible_ = false;
+    update();
+}
+
+void FormulaWidget::resetBlinking()
+{
+    cursor_visible_ = true;
+    if (blink_timer_.isActive()) {
+        blink_timer_.stop();
+        blink_timer_.start();
+    }
+    update();
+}
+
+bool FormulaWidget::isBlinkingEnabled() const
+{
+    return blinking_enabled_ && cursor_.hasHighlight();
+}
+
+bool FormulaWidget::isCursorVisible() const
+{
+    return cursor_visible_;
+}
+
+QRectF FormulaWidget::getCaretRect() const
+{
+    if (!cursor_.hasHighlight()) {
+        return QRectF();
+    }
+
+    auto hit = cursor_.currentHighlight();
+    if (!hit) {
+        return QRectF();
+    }
+
+    // Position caret at the left edge of the glyph
+    double caret_x = mflToPixelX(hit->bbox_left);
+    double caret_top = mflToPixelY(hit->bbox_top);
+    double caret_bottom = mflToPixelY(hit->bbox_bottom);
+
+    const double caret_width = 2.0; // 2 pixels wide
+    const double caret_height = caret_bottom - caret_top;
+
+    return QRectF(caret_x, caret_top, caret_width, caret_height);
+}
+
+void FormulaWidget::focusInEvent(QFocusEvent* event)
+{
+    QWidget::focusInEvent(event);
+    if (cursor_.hasHighlight()) {
+        startBlinking();
+    }
+}
+
+void FormulaWidget::focusOutEvent(QFocusEvent* event)
+{
+    QWidget::focusOutEvent(event);
+    stopBlinking();
+}
+
+
+bool FormulaWidget::moveCursorLeft() {
+    bool moved = cursor_.moveToDirection(formula::NavigationDirection::Left);
+    if (moved) {
+        resetBlinking();
+    }
+    return moved;
+}
+
+bool FormulaWidget::moveCursorRight() {
+    bool moved = cursor_.moveToDirection(formula::NavigationDirection::Right);
+    if (moved) {
+        resetBlinking();
+    }
+    return moved;
+}
+
+bool FormulaWidget::moveCursorUp() {
+    bool moved = cursor_.moveToDirection(formula::NavigationDirection::Up);
+    if (moved) {
+        resetBlinking();
+    }
+    return moved;
+}
+
+bool FormulaWidget::moveCursorDown() {
+    bool moved = cursor_.moveToDirection(formula::NavigationDirection::Down);
+    if (moved) {
+        resetBlinking();
+    }
+    return moved;
 }

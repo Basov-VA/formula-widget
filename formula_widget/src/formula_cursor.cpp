@@ -75,4 +75,84 @@ namespace formula {
         return {center_x, center_y};
     }
 
+    std::optional<std::size_t> FormulaCursor::findGlyphInDirection(
+        std::size_t current_index, NavigationDirection direction) const
+    {
+        if (!layout_ || layout_->glyphs.empty()) return std::nullopt;
+        if (current_index >= layout_->glyphs.size()) return std::nullopt;
+
+        const auto [cx, cy] = glyphBBoxCenter(layout_->glyphs[current_index]);
+
+        std::optional<std::size_t> best_index;
+        double best_score = std::numeric_limits<double>::max();
+
+        const double k = 3.0; // штраф за отклонение от основного направления
+
+        for (std::size_t i = 0; i < layout_->glyphs.size(); ++i) {
+            if (i == current_index) continue;
+
+            const auto [gx, gy] = glyphBBoxCenter(layout_->glyphs[i]);
+            double dx = gx - cx;
+            double dy = gy - cy;
+
+            bool is_candidate = false;
+            double score = 0.0;
+
+            switch (direction) {
+                case NavigationDirection::Left:
+                    is_candidate = (dx < -1e-6);
+                    score = std::abs(dx) + k * std::abs(dy);
+                    break;
+                case NavigationDirection::Right:
+                    is_candidate = (dx > 1e-6);
+                    score = std::abs(dx) + k * std::abs(dy);
+                    break;
+                case NavigationDirection::Up:
+                    is_candidate = (dy > 1e-6);
+                    score = std::abs(dy) + k * std::abs(dx);
+                    break;
+                case NavigationDirection::Down:
+                    is_candidate = (dy < -1e-6);
+                    score = std::abs(dy) + k * std::abs(dx);
+                    break;
+            }
+
+            if (is_candidate && score < best_score) {
+                best_score = score;
+                best_index = i;
+            }
+        }
+
+        return best_index;
+    }
+
+    bool FormulaCursor::moveToDirection(NavigationDirection direction) {
+        if (!current_highlight_) return false;
+
+        auto target = findGlyphInDirection(current_highlight_->glyph_index, direction);
+        if (!target) return false;
+
+        setGlyphIndex(*target);
+        return true;
+    }
+
+    void FormulaCursor::setGlyphIndex(std::size_t index) {
+        if (!layout_ || index >= layout_->glyphs.size()) return;
+
+        const auto& g = layout_->glyphs[index];
+        current_highlight_ = glyph_hit_result{
+            .glyph_index = index,
+            .distance = 0.0,
+            .bbox_left   = g.x,
+            .bbox_top    = g.y + g.height,
+            .bbox_right  = g.x + g.advance,
+            .bbox_bottom = g.y - g.depth,
+        };
+    }
+
+    std::optional<std::size_t> FormulaCursor::currentGlyphIndex() const {
+        if (current_highlight_) return current_highlight_->glyph_index;
+        return std::nullopt;
+    }
+
 } // namespace formula

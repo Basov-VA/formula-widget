@@ -14,6 +14,9 @@
 #include <QPointF>
 #include <QRectF>
 #include <QColor>
+#include <QKeyEvent>
+#include <QTimer>
+#include <QFocusEvent>
 #include <optional>
 
 #include <memory>
@@ -53,6 +56,12 @@ public:
     // Get cursor position in pixel coordinates
     std::optional<QPointF> getCursorPosition() const;
 
+    // Arrow key navigation
+    bool moveCursorLeft();
+    bool moveCursorRight();
+    bool moveCursorUp();
+    bool moveCursorDown();
+
 signals:
     void formulaChanged();
     void cursorGlyphChanged(std::size_t glyph_index);
@@ -61,9 +70,21 @@ protected:
     void paintEvent(QPaintEvent* event) override;
     void resizeEvent(QResizeEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void focusInEvent(QFocusEvent* event) override;
+    void focusOutEvent(QFocusEvent* event) override;
 
 private:
     void recalculateLayout();
+
+    // Blinking cursor functionality
+    void onBlinkTimer();
+    void startBlinking();
+    void stopBlinking();
+    void resetBlinking();
+    bool isBlinkingEnabled() const;
+    bool isCursorVisible() const;
+    QRectF getCaretRect() const;
 
     // Coordinate conversion functions
     [[nodiscard]] double pointsToPixels(mfl::points pt) const;
@@ -100,4 +121,10 @@ private:
     double margin_left_ = 10.0;
     double margin_top_ = 10.0;
     double margin_bottom_ = 10.0;
+
+    // Blinking cursor functionality
+    QTimer blink_timer_;
+    bool cursor_visible_ = true;
+    bool blinking_enabled_ = true;
+    int blink_interval_ms_ = 500; // Standard cursor blink interval
 };
