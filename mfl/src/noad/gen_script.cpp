@@ -20,15 +20,15 @@ namespace mfl
                 const auto& mc = std::get<math_char>(noads.front());
                 const auto enlarge = ((s.style == formula_style::display) && is_big_op);
                 auto [glyph_node, corrections] = make_glyph(s, mc.family, mc.char_code, enlarge);
-                auto result_box = make_hbox(make_hlist(glyph_node));
-                result_box.annotation = formula_node_type::script_nucleus;
-                if (is_big_op) return {center_on_axis(s, std::move(result_box)), corrections, false};
-
-                return {std::move(result_box), corrections, true};
+                if (is_big_op)
+                {
+                    auto result_box = make_hbox(make_hlist(glyph_node));
+                    return {center_on_axis(s, std::move(result_box)), corrections, false};
+                }
+                return {std::move(glyph_node), corrections, true};
             }
 
             auto result_box = clean_box(s, cramp, noads);
-            result_box.annotation = formula_node_type::script_nucleus;
             return {std::move(result_box), {}, false};
         }
 
@@ -133,19 +133,19 @@ namespace mfl
             const auto sub_height = sub_box.dims.height;
             sub_box.shift = subscript_alone_pos(s, nuc.is_single_character, nuc_depth, sub_height);
             sub_box.annotation = formula_node_type::subscript;
-            auto result = concat(make_hlist(std::move(nuc.nucleus_node)), extend(std::move(sub_box), script_space(s)));
-            return result;
+            return concat(make_hlist(std::move(nuc.nucleus_node)), extend(std::move(sub_box), script_space(s)));
         }
 
         hlist make_superscript_hlist(const settings s, const cramping cramp, nucleus_result&& nuc, box&& sup_box)
         {
             const auto nuc_height = height(nuc.nucleus_node);
             const auto sup_depth = sup_box.dims.depth;
-            sup_box.shift = -sup_pos(s, cramp, nuc.is_single_character, nuc_height, sup_depth);
+            const auto italic_correction = nuc.corrections.italic_correction;
+            const auto is_single = nuc.is_single_character;
+            sup_box.shift = -sup_pos(s, cramp, is_single, nuc_height, sup_depth);
             sup_box.annotation = formula_node_type::superscript;
-            auto result = concat(extend(std::move(nuc.nucleus_node), nuc.corrections.italic_correction),
-                                 extend(std::move(sup_box), script_space(s)));
-            return result;
+            return concat(extend(std::move(nuc.nucleus_node), italic_correction),
+                          extend(std::move(sup_box), script_space(s)));
         }
 
         vstack_distances dual_script_vstack_distances(const settings s, const cramping cramp,
@@ -176,14 +176,15 @@ namespace mfl
             const auto nuc_height = height(nuc.nucleus_node);
             const auto sub_height = sub_box.dims.height;
             const auto sup_depth = sup_box.dims.depth;
-            const auto distances = dual_script_vstack_distances(s, cramp, nuc.is_single_character, nuc_depth,
+            const auto italic_correction = nuc.corrections.italic_correction;
+            const auto is_single = nuc.is_single_character;
+            const auto distances = dual_script_vstack_distances(s, cramp, is_single, nuc_depth,
                                                                 nuc_height, sub_height, sup_depth);
-            sup_box.shift = nuc.corrections.italic_correction;
+            sup_box.shift = italic_correction;
             sup_box.annotation = formula_node_type::superscript;
             sub_box.annotation = formula_node_type::subscript;
             auto script_node = vstack(std::move(sup_box), std::move(sub_box), distances);
-            auto result = concat(make_hlist(std::move(nuc.nucleus_node)), extend(std::move(script_node), script_space(s)));
-            return result;
+            return concat(make_hlist(std::move(nuc.nucleus_node)), extend(std::move(script_node), script_space(s)));
         }
 
         hlist make_script_hlist(const settings s, const cramping cramp, nucleus_result&& nucleus,
@@ -200,9 +201,7 @@ namespace mfl
             }
 
             if (!sub_box && !sup_box) {
-                auto box_result = make_hbox(extend(std::move(nucleus.nucleus_node), nucleus.corrections.italic_correction));
-                box_result.annotation = formula_node_type::script_nucleus;
-                return make_hlist(std::move(box_result));
+                return extend(std::move(nucleus.nucleus_node), nucleus.corrections.italic_correction);
             }
 
             if (sub_box && !sup_box) {
@@ -235,13 +234,9 @@ namespace mfl
         auto nucleus = make_nucleus(s, cramp, is_big_op, n.nucleus);
         const auto st = script_settings(s);
 
-        auto result = use_limit_pos ? make_limit_hlist(st, cramp, nucleus.corrections.italic_correction,
+        return use_limit_pos ? make_limit_hlist(st, cramp, nucleus.corrections.italic_correction,
                                                 std::move(nucleus.nucleus_node), n.sub, n.sup)
                              : make_script_hlist(st, cramp, std::move(nucleus), n.sub, n.sup);
-        // Wrap the result in a box to add annotation
-        auto box_result = make_hbox(std::move(result));
-        box_result.annotation = formula_node_type::script_nucleus;
-        return make_hlist(std::move(box_result));
     }
 
     template hlist gen_script_to_hlist<script>(const settings, const cramping, const bool, const script&);

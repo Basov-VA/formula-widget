@@ -16,7 +16,6 @@ namespace mfl
 
         const auto min_height = (x_height(s) * 7) / 4;
         auto content_box = clean_box(s, cramp, r.radicand);
-        content_box.annotation = formula_node_type::radicand;
         const auto vertical_gap = std::max(radical_vertical_gap(s), min_height - content_box.dims.height);
         const auto requested_height = content_box.dims.height + content_box.dims.depth + vertical_gap * 2;
 

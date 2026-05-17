@@ -186,8 +186,6 @@ namespace mfl
     hlist math_char_to_hlist(const settings s, const math_char& mc)
     {
         auto glyph_node = make_glyph(s, mc.family, mc.char_code, false).first;
-        auto result_box = make_hbox(make_hlist(glyph_node));
-        result_box.annotation = formula_node_type::symbol;
-        return make_hlist(std::move(result_box));
+        return make_hlist(glyph_node);
     }
 }

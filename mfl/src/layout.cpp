@@ -79,7 +79,20 @@ namespace mfl
                                                    .advance = dist_to_points(g.width),
                                                    .height = dist_to_points(g.height),
                                                    .depth = dist_to_points(g.depth)});
-            parent.glyph_indices.push_back(elements.glyphs.size() - 1);
+            const auto glyph_idx = elements.glyphs.size() - 1;
+
+            // Add glyph index to parent directly
+            parent.glyph_indices.push_back(glyph_idx);
+
+            // Also create a symbol child node for this glyph (for tree structure)
+            const auto& sg = elements.glyphs.back();
+            formula_node symbol_node{.type = formula_node_type::symbol};
+            symbol_node.glyph_indices.push_back(glyph_idx);
+            symbol_node.bbox_x = sg.x;
+            symbol_node.bbox_y = sg.y - sg.depth;
+            symbol_node.bbox_width = sg.advance;
+            symbol_node.bbox_height = sg.height + sg.depth;
+            parent.children.push_back(std::move(symbol_node));
         }
 
         void layout_rule(const rule& r, const points x, const points y, layout_elements& elements, formula_node& parent)
@@ -105,11 +118,56 @@ namespace mfl
                        n);
         }
 
+        // Check if a node_variant is a box with one of the given annotations
+        bool is_script_box(const node_variant& n)
+        {
+            if (!std::holds_alternative<wrapped_box>(n)) return false;
+            const auto& b = static_cast<const box&>(std::get<wrapped_box>(n));
+            return b.annotation == formula_node_type::subscript
+                || b.annotation == formula_node_type::superscript;
+        }
+
         void layout_hbox(const box& b, const points x, const points y, layout_elements& elements, formula_node& parent)
         {
             auto cur_x = x;
-            for (const auto& node : b.nodes)
+            const auto& nodes = b.nodes;
+            for (std::size_t i = 0; i < nodes.size(); ++i)
             {
+                const auto& node = nodes[i];
+                // If this is a glyph and the next non-kern node is a subscript/superscript box,
+                // wrap the glyph in a script_nucleus formula_node.
+                if (std::holds_alternative<glyph>(node))
+                {
+                    // Look ahead for a script box
+                    bool has_script_sibling = false;
+                    for (std::size_t j = i + 1; j < nodes.size(); ++j)
+                    {
+                        if (is_script_box(nodes[j])) { has_script_sibling = true; break; }
+                        if (!std::holds_alternative<kern>(nodes[j]) &&
+                            !std::holds_alternative<glue_spec>(nodes[j])) break;
+                    }
+
+                    if (has_script_sibling)
+                    {
+                        // Create a script_nucleus child node and lay the glyph into it
+                        parent.children.push_back({.type = formula_node_type::script_nucleus});
+                        auto& nucleus_node = parent.children.back();
+                        layout_glyph(std::get<glyph>(node), cur_x, y, elements, nucleus_node);
+                        // Set bbox for the nucleus node
+                        if (!nucleus_node.glyph_indices.empty())
+                        {
+                            const auto& sg = elements.glyphs[nucleus_node.glyph_indices.front()];
+                            nucleus_node.bbox_x = sg.x;
+                            nucleus_node.bbox_y = sg.y - sg.depth;
+                            nucleus_node.bbox_width = sg.advance;
+                            nucleus_node.bbox_height = sg.height + sg.depth;
+                            // Also propagate glyph_index to parent (numerator/denominator/etc.)
+                            parent.glyph_indices.push_back(nucleus_node.glyph_indices.front());
+                        }
+                        cur_x += dist_to_points(scaled_width(node, b.glue.scale));
+                        continue;
+                    }
+                }
                 layout_node(node, cur_x, y, elements, parent);
                 cur_x += dist_to_points(scaled_width(node, b.glue.scale));
             }
@@ -244,12 +302,36 @@ namespace mfl
         const auto [noads, error] = parse(input);
         if (error) return {.error = error};
 
-        const auto hbox =
+        auto hbox =
             make_hbox(to_hlist({.style = formula_style::display, .fonts = &fonts}, cramping::off, false, noads));
         mfl::layout_elements result{.width = dist_to_points(hbox.dims.width), .height = dist_to_points(hbox.dims.height)};
         // Инициализировать корневой узел дерева
         result.tree = mfl::formula_node{.type = mfl::formula_node_type::root};
+        // Do NOT override hbox.annotation — if make_hbox unwrapped a single annotated box
+        // (e.g. a fraction), we want layout_box to create a proper child node for it.
+        // If hbox.annotation == root (multi-element formula), layout_box lays out directly
+        // into result.tree.
         layout_box(hbox, 0_pt, 0_pt, result, result.tree);
+
+        // Ensure root bbox covers all its children (needed when hbox was an annotated box
+        // like fraction, so layout_box created a child but never set result.tree.bbox_*).
+        if (!result.tree.children.empty() && result.tree.bbox_width == 0_pt) {
+            auto min_x = result.tree.children[0].bbox_x;
+            auto min_y = result.tree.children[0].bbox_y;
+            auto max_x = min_x + result.tree.children[0].bbox_width;
+            auto max_y = min_y + result.tree.children[0].bbox_height;
+            for (const auto& child : result.tree.children) {
+                min_x = std::min(min_x, child.bbox_x);
+                min_y = std::min(min_y, child.bbox_y);
+                max_x = std::max(max_x, child.bbox_x + child.bbox_width);
+                max_y = std::max(max_y, child.bbox_y + child.bbox_height);
+            }
+            result.tree.bbox_x = min_x;
+            result.tree.bbox_y = min_y;
+            result.tree.bbox_width = max_x - min_x;
+            result.tree.bbox_height = max_y - min_y;
+        }
+
         return result;
     }
 }

@@ -17,15 +17,13 @@ namespace mfl
             return ((a.noads.size() == 1) && (std::holds_alternative<math_char>(a.noads.front())));
         }
 
-        hlist accent_hlist(const settings s, const dist_t /*shift*/, box&& content_box, const glyph& accent_glyph)
+        hlist accent_hlist(const settings s, const dist_t shift, box&& content_box, const glyph& accent_glyph)
         {
             auto accent_box = make_hbox(make_hlist(accent_glyph));
-            accent_box.annotation = formula_node_type::accent;
+            accent_box.shift = shift;
             const auto width = content_box.dims.width;
-            content_box.annotation = formula_node_type::group;  // or appropriate type for accented content
             auto gap = kern{.size = rule_thickness(s)};
             auto vbox = make_up_vbox(width, std::forward<box>(content_box), {.nodes = {gap, std::move(accent_box)}});
-            vbox.annotation = formula_node_type::accent;
             auto result = make_hlist(std::move(vbox));
             return result;
         }
