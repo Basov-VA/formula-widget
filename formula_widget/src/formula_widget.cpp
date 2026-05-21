@@ -647,9 +647,23 @@ QRectF FormulaWidget::getCaretRect() const
     double caret_bottom = mflToPixelY(hit->bbox_bottom);
 
     const double caret_width = 2.0; // 2 pixels wide
-    const double caret_height = caret_bottom - caret_top;
+    double caret_height = std::abs(caret_bottom - caret_top);
 
-    return QRectF(caret_x, caret_top, caret_width, caret_height);
+    // Ensure minimum caret height for small glyphs like minus sign
+    const double min_caret_height = 20.0; // pixels
+    if (caret_height < min_caret_height) {
+        // Center the caret vertically around the original position
+        double caret_center = (caret_top + caret_bottom) / 2.0;
+        caret_top = caret_center - min_caret_height / 2.0;
+        caret_bottom = caret_center + min_caret_height / 2.0;
+        caret_height = min_caret_height;
+    }
+
+    // Ensure correct top/bottom ordering for Qt coordinates
+    double actual_top = std::min(caret_top, caret_bottom);
+    double actual_height = std::abs(caret_bottom - caret_top);
+
+    return QRectF(caret_x, actual_top, caret_width, actual_height);
 }
 
 void FormulaWidget::focusInEvent(QFocusEvent* event)

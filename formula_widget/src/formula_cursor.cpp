@@ -84,9 +84,16 @@ namespace formula {
         const auto [cx, cy] = glyphBBoxCenter(layout_->glyphs[current_index]);
 
         std::optional<std::size_t> best_index;
-        double best_score = std::numeric_limits<double>::max();
 
-        const double k = 3.0; // штраф за отклонение от основного направления
+        // Строгая навигация: горизонтальные стрелки - только по горизонтали, вертикальные - только по вертикали
+
+        // Сначала ищем символы на той же строке/столбце
+        std::optional<std::size_t> same_line_candidate;
+        double same_line_score = std::numeric_limits<double>::max();
+
+        // Затем ищем символы на других строках/столбцах
+        std::optional<std::size_t> other_line_candidate;
+        double other_line_score = std::numeric_limits<double>::max();
 
         for (std::size_t i = 0; i < layout_->glyphs.size(); ++i) {
             if (i == current_index) continue;
@@ -101,27 +108,60 @@ namespace formula {
             switch (direction) {
                 case NavigationDirection::Left:
                     is_candidate = (dx < -1e-6);
-                    score = std::abs(dx) + k * std::abs(dy);
+                    score = std::abs(dx);
                     break;
                 case NavigationDirection::Right:
                     is_candidate = (dx > 1e-6);
-                    score = std::abs(dx) + k * std::abs(dy);
+                    score = std::abs(dx);
                     break;
                 case NavigationDirection::Up:
                     is_candidate = (dy > 1e-6);
-                    score = std::abs(dy) + k * std::abs(dx);
+                    score = std::abs(dy);
                     break;
                 case NavigationDirection::Down:
                     is_candidate = (dy < -1e-6);
-                    score = std::abs(dy) + k * std::abs(dx);
+                    score = std::abs(dy);
                     break;
             }
 
-            if (is_candidate && score < best_score) {
-                best_score = score;
-                best_index = i;
+            if (is_candidate) {
+                // Проверяем, находится ли символ на той же строке/столбце
+                bool is_same_line = false;
+                switch (direction) {
+                    case NavigationDirection::Left:
+                    case NavigationDirection::Right:
+                        is_same_line = (std::abs(dy) < 1e-3); // Та же строка
+                        break;
+                    case NavigationDirection::Up:
+                    case NavigationDirection::Down:
+                        is_same_line = (std::abs(dx) < 1e-3); // Тот же столбец
+                        break;
+                }
+
+                if (is_same_line) {
+                    // Приоритет: символы на той же строке/столбце
+                    if (score < same_line_score) {
+                        same_line_score = score;
+                        same_line_candidate = i;
+                    }
+                } else {
+                    // Символы на других строках/столбцах (с сильным штрафом)
+                    double penalized_score = score + 1000.0 * (std::abs(dy) + std::abs(dx));
+                    if (penalized_score < other_line_score) {
+                        other_line_score = penalized_score;
+                        other_line_candidate = i;
+                    }
+                }
             }
         }
+
+        // Возвращаем символ с той же строки/столбца, если он есть
+        if (same_line_candidate) {
+            return same_line_candidate;
+        }
+
+        // Иначе возвращаем символ с другой строки/столбца
+        return other_line_candidate;
 
         return best_index;
     }
