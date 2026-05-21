@@ -23,7 +23,9 @@ include(cmake/StaticAnalyzers.cmake)
 
 
 add_subdirectory(src)
-add_subdirectory(tests/fonts_for_tests)
+if (NOT DEFINED mfl_BUILD_FONTS_FOR_TESTS OR mfl_BUILD_FONTS_FOR_TESTS)
+    add_subdirectory(tests/fonts_for_tests)
+endif()
 add_subdirectory(tests/unit_tests)
 add_subdirectory(tests/approval_tests)
 

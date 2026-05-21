@@ -13,6 +13,8 @@ find_package(Freetype REQUIRED)
 find_package(harfbuzz REQUIRED)
 
 # mfl as subproject
+set(mfl_BUILD_TESTS OFF CACHE BOOL "Disable mfl tests")
+set(mfl_BUILD_FONTS_FOR_TESTS OFF CACHE BOOL "Disable mfl fonts for tests")
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../mfl ${CMAKE_CURRENT_BINARY_DIR}/mfl)
 
 # Collect source files
@@ -52,7 +54,6 @@ target_link_libraries(formula_widget PRIVATE
 
 target_link_libraries(test_layout PRIVATE
     mfl
-    mfl_tests_unit_tests
 )
 
 # Include directories
