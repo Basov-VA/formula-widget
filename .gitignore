@@ -1,3 +1,6 @@
+# Вспомогательные материалы (ПЗ, pdf, генераторы, скриншоты) — только локально
+материалы/
+
 # Build directories
 build/
 */build/
@@ -17,14 +20,21 @@ Makefile
 # Static libraries
 *.a
 
-# Executables (match files only, not directories — no trailing slash needed but use full path pattern)
-formula_widget/build/formula_widget
-formula_widget/build/mfl/tests/approval_tests/approval_tests
-formula_widget/build/mfl/tests/unit_tests/unit_tests
+# Executables (в новой структуре код лежит в project/)
+project/formula_widget/build/formula_widget
+project/formula_widget/build/mfl/tests/approval_tests/approval_tests
+project/formula_widget/build/mfl/tests/unit_tests/unit_tests
 
 # Qt MOC generated files
 mfl_autogen/
 *_autogen/
+
+# Python
+__pycache__/
+*.pyc
+
+# Временные файлы Word
+~$*
 
 # macOS
 .DS_Store

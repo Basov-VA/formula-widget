@@ -1,0 +1,442 @@
+#include "formula_widget.hpp"
+
+#include <QApplication>
+#include <QMainWindow>
+#include <QVBoxLayout>
+#include <QWidget>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QLabel>
+#include <QSpinBox>
+#include <QCheckBox>
+#include <QGroupBox>
+#include <QScrollArea>
+#include <QTextEdit>
+#include <QSplitter>
+#include <QGridLayout>
+#include <QToolTip>
+#include <QTimer>
+
+#include <memory>
+#include <functional>
+#include <vector>
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    MainWindow()
+    {
+        setupUI();
+        setupConnections();
+
+        // Set a default formula
+        formulaInput_->setText(R"(\frac{1}{2\pi i} \int_\gamma \frac{f(z)}{z-a} \, dz)");
+        fontSizeSpinBox_->setValue(20);
+
+        // Initialize the formula widget with the default formula
+        formulaWidget_->setFormula(formulaInput_->text());
+    }
+
+private:
+    void setupUI()
+    {
+        // Create central widget and layout
+        auto* centralWidget = new QWidget(this);
+        setCentralWidget(centralWidget);
+
+        auto* mainLayout = new QVBoxLayout(centralWidget);
+
+        // Create formula input controls
+        auto* controlsWidget = new QWidget;
+        auto* controlsLayout = new QVBoxLayout(controlsWidget);
+
+        auto* formulaLayout = new QHBoxLayout;
+        formulaLayout->addWidget(new QLabel("Formula:"));
+        formulaInput_ = new QLineEdit;
+        formulaLayout->addWidget(formulaInput_);
+
+        updateButton_ = new QPushButton("Update");
+        formulaLayout->addWidget(updateButton_);
+
+        // Add button to show tree structure
+        auto* showTreeButton = new QPushButton("Show Tree Structure");
+        formulaLayout->addWidget(showTreeButton);
+
+        controlsLayout->addLayout(formulaLayout);
+
+        auto* settingsLayout = new QHBoxLayout;
+
+        auto* fontSizeLayout = new QHBoxLayout;
+        fontSizeLayout->addWidget(new QLabel("Font Size:"));
+        fontSizeSpinBox_ = new QSpinBox;
+        fontSizeSpinBox_->setRange(8, 72);
+        fontSizeSpinBox_->setValue(12);
+        fontSizeLayout->addWidget(fontSizeSpinBox_);
+        settingsLayout->addLayout(fontSizeLayout);
+
+        debugCheckBox_ = new QCheckBox("Debug Bounding Boxes");
+        debugCheckBox_->setChecked(true);  // Enable by default for debugging
+        settingsLayout->addWidget(debugCheckBox_);
+
+        settingsLayout->addStretch();
+
+        controlsLayout->addLayout(settingsLayout);
+
+        // Create cursor controls
+        auto* cursorLayout = new QHBoxLayout;
+        cursorLayout->addWidget(new QLabel("Cursor X:"));
+        cursorXSpinBox_ = new QDoubleSpinBox;
+        cursorXSpinBox_->setRange(-1000, 1000);
+        cursorXSpinBox_->setValue(0);
+        cursorLayout->addWidget(cursorXSpinBox_);
+
+        cursorLayout->addWidget(new QLabel("Cursor Y:"));
+        cursorYSpinBox_ = new QDoubleSpinBox;
+        cursorYSpinBox_->setRange(-1000, 1000);
+        cursorYSpinBox_->setValue(0);
+        cursorLayout->addWidget(cursorYSpinBox_);
+
+        findGlyphButton_ = new QPushButton("Find Nearest Glyph");
+        cursorLayout->addWidget(findGlyphButton_);
+
+        cursorInfoLabel_ = new QLabel("No glyph selected");
+        cursorLayout->addWidget(cursorInfoLabel_);
+
+        cursorLayout->addStretch();
+
+        controlsLayout->addLayout(cursorLayout);
+
+        mainLayout->addWidget(controlsWidget);
+
+        // Create splitter for formula widget and tree view
+        auto* splitter = new QSplitter(Qt::Horizontal);
+
+        // Create formula widget inside a scroll area
+        auto* scrollArea = new QScrollArea;
+        formulaWidget_ = new FormulaWidget;
+        formulaWidget_->setMinimumSize(200, 150);   // небольшой минимум — панель свободно уменьшается
+        scrollArea->setWidget(formulaWidget_);
+        scrollArea->setWidgetResizable(true);
+        scrollArea->setMinimumWidth(150);
+
+        // Create text area for tree structure (можно свернуть)
+        treeView_ = new QTextEdit;
+        treeView_->setReadOnly(true);
+        treeView_->setMinimumWidth(0);
+        treeView_->setFont(QFont("Courier New", 10));
+
+        // Палитра математических функций и знаков (справа)
+        auto* paletteScroll = new QScrollArea;
+        paletteScroll->setWidget(createPalette());
+        paletteScroll->setWidgetResizable(true);
+        paletteScroll->setMinimumWidth(120);
+        paletteScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+        splitter->addWidget(scrollArea);
+        splitter->addWidget(treeView_);
+        splitter->addWidget(paletteScroll);
+        // Тянется область формулы; дерево и палитра держат ширину, но их можно
+        // свернуть/растянуть перетаскиванием разделителей.
+        splitter->setStretchFactor(0, 1);
+        splitter->setStretchFactor(1, 0);
+        splitter->setStretchFactor(2, 0);
+        splitter->setChildrenCollapsible(true);
+        splitter->setHandleWidth(6);
+        splitter->setSizes(QList<int>() << 700 << 150 << 330);
+
+        mainLayout->addWidget(splitter);
+
+        // Connect the show tree button
+        connect(showTreeButton, &QPushButton::clicked, this, &MainWindow::showTreeStructure);
+
+        // Set window properties
+        setWindowTitle("Math Formula Widget Demo");
+        resize(1280, 640);
+    }
+
+    // Палитра математических функций/знаков: клик вставляет символ или
+    // структуру по месту курсора в формуле.
+    QWidget* createPalette()
+    {
+        auto* container = new QWidget;
+        auto* vbox = new QVBoxLayout(container);
+        vbox->setSpacing(10);
+        vbox->setContentsMargins(6, 6, 6, 6);
+
+        auto makeButton = [this](const QString& label, const QString& tip,
+                                 std::function<void()> action) {
+            auto* btn = new QPushButton(label);
+            btn->setFocusPolicy(Qt::NoFocus);   // не забирать фокус у формулы
+            btn->setFixedSize(46, 34);
+            QFont f = btn->font();
+            f.setPointSize(15);
+            btn->setFont(f);
+            if (!tip.isEmpty()) btn->setToolTip(tip);
+            connect(btn, &QPushButton::clicked, this, std::move(action));
+            return btn;
+        };
+
+        // Секция кнопок-символов: label → команда \cmd (insertSymbol).
+        auto addSymbolSection = [&](const QString& title,
+                                    const std::vector<std::pair<QString, QString>>& items) {
+            auto* group = new QGroupBox(title);
+            auto* grid = new QGridLayout(group);
+            grid->setSpacing(4);
+            const std::size_t cols = 6;
+            for (std::size_t i = 0; i < items.size(); ++i) {
+                const QString cmd = items[i].second;
+                auto* btn = makeButton(items[i].first, "\\" + cmd,
+                                       [this, cmd]() { formulaWidget_->insertSymbol(cmd); });
+                grid->addWidget(btn, static_cast<int>(i / cols), static_cast<int>(i % cols));
+            }
+            vbox->addWidget(group);
+        };
+
+        // Функции: sin/cos/… вставляются со скобками и курсором внутри; lim — просто символ.
+        {
+            auto* group = new QGroupBox("Функции");
+            auto* grid = new QGridLayout(group);
+            grid->setSpacing(4);
+            int i = 0;
+            const int cols = 6;
+            auto place = [&](QPushButton* b) { grid->addWidget(b, i / cols, i % cols); ++i; };
+            for (const char* fn : {"sin", "cos", "tan", "cot", "ln", "log", "exp"}) {
+                const QString f = QString::fromLatin1(fn);
+                place(makeButton(f, "\\" + f + "( )",
+                                 [this, f] { formulaWidget_->insertFunction(f); }));
+            }
+            place(makeButton("lim", "\\lim", [this] { formulaWidget_->insertSymbol("lim"); }));
+            vbox->addWidget(group);
+        }
+
+        // Операторы и структуры (структуры — отдельные действия).
+        {
+            auto* group = new QGroupBox("Операторы и структуры");
+            auto* grid = new QGridLayout(group);
+            grid->setSpacing(4);
+            int i = 0;
+            const int cols = 6;
+            auto place = [&](QPushButton* b) { grid->addWidget(b, i / cols, i % cols); ++i; };
+            place(makeButton("∫", "\\int",  [this] { formulaWidget_->insertSymbol("int"); }));
+            place(makeButton("∮", "\\oint", [this] { formulaWidget_->insertSymbol("oint"); }));
+            place(makeButton("∑", "\\sum",  [this] { formulaWidget_->insertSymbol("sum"); }));
+            place(makeButton("∏", "\\prod", [this] { formulaWidget_->insertSymbol("prod"); }));
+            place(makeButton("a/b", "Дробь  ( / )",       [this] { formulaWidget_->insertFraction(); }));
+            place(makeButton("√",  "Корень  (Ctrl+R)",    [this] { formulaWidget_->insertSqrt(); }));
+            place(makeButton("xⁿ", "Верхний индекс  ( ^ )", [this] { formulaWidget_->insertSuperscript(); }));
+            place(makeButton("xₙ", "Нижний индекс  ( _ )",  [this] { formulaWidget_->insertSubscript(); }));
+            vbox->addWidget(group);
+        }
+
+        addSymbolSection("Знаки", {
+            {"±", "pm"}, {"∓", "mp"}, {"×", "times"}, {"⋅", "cdot"}, {"÷", "div"}, {"∗", "ast"},
+            {"≤", "leq"}, {"≥", "geq"}, {"≠", "neq"}, {"≈", "approx"}, {"≡", "equiv"}, {"∼", "sim"},
+            {"∞", "infty"}, {"∂", "partial"}, {"∇", "nabla"}, {"∀", "forall"}, {"∃", "exists"}, {"∝", "propto"},
+            {"∈", "in"}, {"∉", "notin"}, {"⊂", "subset"}, {"∪", "cup"}, {"∩", "cap"}, {"→", "to"},
+        });
+
+        addSymbolSection("Греческие", {
+            {"α", "alpha"}, {"β", "beta"}, {"γ", "gamma"}, {"δ", "delta"}, {"ε", "varepsilon"}, {"ζ", "zeta"},
+            {"η", "eta"}, {"θ", "theta"}, {"κ", "kappa"}, {"λ", "lambda"}, {"μ", "mu"}, {"ν", "nu"},
+            {"ξ", "xi"}, {"π", "pi"}, {"ρ", "rho"}, {"σ", "sigma"}, {"τ", "tau"}, {"φ", "varphi"},
+            {"χ", "chi"}, {"ψ", "psi"}, {"ω", "omega"},
+        });
+
+        addSymbolSection("Греческие (заглавные)", {
+            {"Γ", "Gamma"}, {"Δ", "Delta"}, {"Θ", "Theta"}, {"Λ", "Lambda"},
+            {"Σ", "Sigma"}, {"Φ", "Phi"}, {"Ω", "Omega"},
+        });
+
+        vbox->addStretch();
+        return container;
+    }
+
+    void setupConnections()
+    {
+        connect(updateButton_, &QPushButton::clicked, this, &MainWindow::updateFormula);
+        connect(formulaInput_, &QLineEdit::returnPressed, this, &MainWindow::updateFormula);
+        connect(fontSizeSpinBox_, QOverload<int>::of(&QSpinBox::valueChanged),
+                this, &MainWindow::updateFontSize);
+        connect(debugCheckBox_, &QCheckBox::toggled,
+                formulaWidget_, &FormulaWidget::setDebugDrawBBoxes);
+
+        // Connect cursor controls
+        connect(findGlyphButton_, &QPushButton::clicked, this, &MainWindow::findNearestGlyph);
+        connect(formulaWidget_, &FormulaWidget::cursorGlyphChanged, this, &MainWindow::onCursorGlyphChanged);
+
+        // Connect cursor position spin boxes to update cursor in real-time
+        connect(cursorXSpinBox_, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                this, &MainWindow::findNearestGlyph);
+        connect(cursorYSpinBox_, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                this, &MainWindow::findNearestGlyph);
+
+        // НОВОЕ: синхронизация QLineEdit с виджетом
+        connect(formulaWidget_, &FormulaWidget::formulaChanged, this, [this]() {
+            const QString new_tex = formulaWidget_->currentTexFormula();
+            if (formulaInput_->text() != new_tex) {
+                formulaInput_->blockSignals(true);
+                formulaInput_->setText(new_tex);
+                formulaInput_->blockSignals(false);
+            }
+        });
+    }
+
+private slots:
+    void updateFormula()
+    {
+        formulaWidget_->setFormula(formulaInput_->text());
+    }
+
+    void updateFontSize(int size)
+    {
+        formulaWidget_->setFontSize(size);
+    }
+
+private slots:
+    void findNearestGlyph()
+    {
+        double x = cursorXSpinBox_->value();
+        double y = cursorYSpinBox_->value();
+        formulaWidget_->setCursorPositionMfl(mfl::points{x}, mfl::points{y});
+    }
+
+    void onCursorGlyphChanged(std::size_t glyph_index)
+    {
+        // Get the layout elements from the formula widget
+        const auto& elements = formulaWidget_->layoutElements();
+
+        if (glyph_index < elements.glyphs.size()) {
+            const auto& glyph = elements.glyphs[glyph_index];
+
+            // Update the info label with glyph information
+            QString info = QString("Glyph #%1: family=%2, index=%3, x=%4, y=%5, adv=%6")
+                              .arg(glyph_index)
+                              .arg(static_cast<int>(glyph.family))
+                              .arg(glyph.index)
+                              .arg(glyph.x.value())
+                              .arg(glyph.y.value())
+                              .arg(glyph.advance.value());
+
+            cursorInfoLabel_->setText(info);
+
+            // Also print to console for debugging
+            qDebug() << "Glyph info:" << info;
+        } else {
+            cursorInfoLabel_->setText(QString("Glyph #%1 (out of range)").arg(glyph_index));
+        }
+    }
+
+private:
+     QLineEdit* formulaInput_;
+     QPushButton* updateButton_;
+     QSpinBox* fontSizeSpinBox_;
+     QCheckBox* debugCheckBox_;
+     FormulaWidget* formulaWidget_;
+     QTextEdit* treeView_;
+
+     // Cursor controls
+     QDoubleSpinBox* cursorXSpinBox_;
+     QDoubleSpinBox* cursorYSpinBox_;
+     QPushButton* findGlyphButton_;
+     QLabel* cursorInfoLabel_;
+
+ private slots:
+     void showTreeStructure()
+     {
+         // Get the layout elements from the formula widget
+         const auto& elements = formulaWidget_->layoutElements();
+
+         // Generate tree structure as text
+         QString treeText = "Formula Tree Structure:\n\n";
+         treeText += generateTreeText(elements.tree, 0);
+
+         // Display in the text area
+         treeView_->setPlainText(treeText);
+     }
+
+     QString generateTreeText(const mfl::formula_node& node, int depth)
+     {
+         QString indent(depth * 2, ' ');
+         QString text = indent + getNodeTypeName(node.type);
+
+         // Add bounding box information
+         if (node.bbox_width.value() > 0 || node.bbox_height.value() > 0) {
+             text += QString(" [x=%1, y=%2, w=%3, h=%4]")
+                         .arg(node.bbox_x.value(), 0, 'f', 1)
+                         .arg(node.bbox_y.value(), 0, 'f', 1)
+                         .arg(node.bbox_width.value(), 0, 'f', 1)
+                         .arg(node.bbox_height.value(), 0, 'f', 1);
+         }
+
+         // Add glyph indices if any
+         if (!node.glyph_indices.empty()) {
+             text += " glyphs: [";
+             for (size_t i = 0; i < node.glyph_indices.size(); ++i) {
+                 if (i > 0) text += ", ";
+                 text += QString::number(node.glyph_indices[i]);
+             }
+             text += "]";
+         }
+
+         text += "\n";
+
+         // Recursively add children
+         for (const auto& child : node.children) {
+             text += generateTreeText(child, depth + 1);
+         }
+
+         return text;
+     }
+
+     QString getNodeTypeName(mfl::formula_node_type type)
+     {
+         switch (type) {
+             case mfl::formula_node_type::root: return "Root";
+             case mfl::formula_node_type::symbol: return "Symbol";
+             case mfl::formula_node_type::fraction: return "Fraction";
+             case mfl::formula_node_type::numerator: return "Numerator";
+             case mfl::formula_node_type::denominator: return "Denominator";
+             case mfl::formula_node_type::radical: return "Radical";
+             case mfl::formula_node_type::radicand: return "Radicand";
+             case mfl::formula_node_type::degree: return "Degree";
+             case mfl::formula_node_type::superscript: return "Superscript";
+             case mfl::formula_node_type::subscript: return "Subscript";
+             case mfl::formula_node_type::script_nucleus: return "ScriptNucleus";
+             case mfl::formula_node_type::group: return "Group";
+             case mfl::formula_node_type::overline: return "Overline";
+             case mfl::formula_node_type::underline: return "Underline";
+             case mfl::formula_node_type::accent: return "Accent";
+             case mfl::formula_node_type::left_right: return "LeftRight";
+             case mfl::formula_node_type::matrix: return "Matrix";
+             case mfl::formula_node_type::matrix_cell: return "MatrixCell";
+             default: return "Unknown";
+         }
+     }
+};
+
+int main(int argc, char* argv[])
+{
+    QApplication app(argc, argv);
+
+    MainWindow window;
+    window.show();
+
+    // Отладочный скриншот всего окна: FW_SCREENSHOT=/path.png ./formula_widget
+    if (qEnvironmentVariableIsSet("FW_SCREENSHOT")) {
+        const QString path = qEnvironmentVariable("FW_SCREENSHOT");
+        if (qEnvironmentVariableIsSet("FW_SIZE")) {
+            const auto p = qEnvironmentVariable("FW_SIZE").split('x');
+            if (p.size() == 2) window.resize(p[0].toInt(), p[1].toInt());
+        }
+        QTimer::singleShot(500, [&window, path]() {
+            window.grab().save(path);
+            QApplication::quit();
+        });
+    }
+
+    return app.exec();
+}
+
+#include "main.moc"
